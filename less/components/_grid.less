@@ -1,0 +1,123 @@
+@total-columns: 12;
+
+/*
+  Define the size of a grid block. Blocks are flex items. By default, they stretch to fill all available space, based on the size of sibling blocks. This is the "expand" behavior.
+
+  If set to "shrink", the block will contract and only fill as much space as it needs for its content.
+
+  If set to a number, the block will be given a percentage width, based on the total number of columns (12 by default). Percentage widths don't work if a block is inside a vertical grid.
+
+  @group grid
+
+  @param {number|string} $size - Sizing behavior of the block. Should be expand, shrink, or a number.
+
+  @output The flex-basis, flex-grow, and flex-shrink properties.
+*/
+.grid-size(@size) when (isnumber(@size)) {
+  @pct: percentage(@size / @total-columns);
+  flex: 0 0 @pct;
+  // max-width prevents columns from wrapping early in IE10/11
+  max-width: @pct;
+}
+
+.grid-size(@size) when (@size = shrink) {
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.grid-size(@size) when (@size = expand) {
+  flex: 1 1 auto;
+}
+
+/*
+  Set the orientation of blocks within this block. The grid is re-oriented by changing the flex direction of the block.
+
+  @group grid
+
+  @param {string} $orientation - Direction of the grid, either horizontal or vertical.
+
+  @output A flex-flow property to match the direction given.
+*/
+.grid-orient(@orientation: horizontal) when (@orientation = vertical) {
+  flex-flow: column nowrap;
+  align-items: stretch;
+}
+
+.grid-orient(@orientation: horizontal) {
+  flex-flow: row wrap;
+}
+
+/*
+  Stretch a grid's child blocks across its cross-axis, making every column appear to have the same height.
+
+  @group grid
+
+  @param {bool} $stretch - Stretch blocks if true, or align blocks to top if false.
+
+  @output Sets align-items to "stretch" if $stretch is true, or "flex-start" (the default value) if false.
+*/
+.grid-wrap(@wrap: true) when (@wrap = true) {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.grid-wrap(@wrap: false) {
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+
+/*
+  Set the alignment of blocks within a grid.
+
+  left: Items align to the left.
+  right: Items align to the right.
+  center: Items align to the center.
+  justify: Items are spaced equally apart so they occupy the space of the entire grid.
+  spaced: Items are given equal space to their left and right.
+
+  @group grid
+
+  @param {string} $align - Alignment to use.
+
+  @output An appropriate justify-content value.
+*/
+.grid-align(@align: left) {
+  justify-content: @align;
+}
+
+
+/*
+  Set the source order of a block. Items with lower numbers appear first. If multiple items have the same number, the one in the HTML first will appear first.
+
+  @group grid
+
+  @param {number} $order - Position in source order.
+
+  @output An order property.
+*/
+.grid-order(@order: 0) {
+  order: @order;
+}
+
+/*
+  Frames are containers that stretch to the full dimmensions of the browser window.
+*/
+.grid-frame (@size: expand, @orientation: horizontal, @wrap: false, @align: left, @order: 0, @height: 100vh) {
+  display: flex;
+  height: @height;
+  position: relative;
+  overflow: hidden;
+  backface-visibility: hidden;
+
+  .grid-size(@size);
+  .grid-orient(@orientation);
+  .grid-wrap(@wrap);
+  .grid-align(@align);
+  .grid-order(@order);
+}
+
+
+.grid-frame {
+  .grid-frame();
+  .grid-orient();
+}

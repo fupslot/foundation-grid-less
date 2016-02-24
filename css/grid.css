@@ -1,0 +1,71 @@
+/*
+  Define the size of a grid block. Blocks are flex items. By default, they stretch to fill all available space, based on the size of sibling blocks. This is the "expand" behavior.
+
+  If set to "shrink", the block will contract and only fill as much space as it needs for its content.
+
+  If set to a number, the block will be given a percentage width, based on the total number of columns (12 by default). Percentage widths don't work if a block is inside a vertical grid.
+
+  @group grid
+
+  @param {number|string} $size - Sizing behavior of the block. Should be expand, shrink, or a number.
+
+  @output The flex-basis, flex-grow, and flex-shrink properties.
+*/
+/*
+  Set the orientation of blocks within this block. The grid is re-oriented by changing the flex direction of the block.
+
+  @group grid
+
+  @param {string} $orientation - Direction of the grid, either horizontal or vertical.
+
+  @output A flex-flow property to match the direction given.
+*/
+/*
+  Stretch a grid's child blocks across its cross-axis, making every column appear to have the same height.
+
+  @group grid
+
+  @param {bool} $stretch - Stretch blocks if true, or align blocks to top if false.
+
+  @output Sets align-items to "stretch" if $stretch is true, or "flex-start" (the default value) if false.
+*/
+/*
+  Set the alignment of blocks within a grid.
+
+  left: Items align to the left.
+  right: Items align to the right.
+  center: Items align to the center.
+  justify: Items are spaced equally apart so they occupy the space of the entire grid.
+  spaced: Items are given equal space to their left and right.
+
+  @group grid
+
+  @param {string} $align - Alignment to use.
+
+  @output An appropriate justify-content value.
+*/
+/*
+  Set the source order of a block. Items with lower numbers appear first. If multiple items have the same number, the one in the HTML first will appear first.
+
+  @group grid
+
+  @param {number} $order - Position in source order.
+
+  @output An order property.
+*/
+/*
+  Frames are containers that stretch to the full dimmensions of the browser window.
+*/
+.grid-frame {
+  display: flex;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  backface-visibility: hidden;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: left;
+  order: 0;
+  flex-flow: row wrap;
+}
