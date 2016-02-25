@@ -1,5 +1,23 @@
-@total-columns: 12;
+/*
+  THE GRID
+  --------
 
+  Foundation's magical, flexbox-powered grid.
+
+  Features:
+   - Horizontal or vertical grids
+   - Auto-sizing or percentage width grid blocks
+   - Independently-scrollable blocks
+   - Column alignment
+   - Source ordering
+   - Offsets
+*/
+
+@total-columns: 12;
+@container-width: 56.25rem;
+@block-padding: 1rem;
+@block-grid-max-size: 6;
+@breakpoint-classes: small medium large;
 /*
   Define the size of a grid block. Blocks are flex items. By default, they stretch to fill all available space, based on the size of sibling blocks. This is the "expand" behavior.
 
@@ -100,6 +118,104 @@
 }
 
 /*
+  Collapse a content block by removing the padding.
+
+  @group grid
+
+  @param {bool} $collapse - Collapses the block if true.
+
+  @output A padding value.
+
+  @todo No way to reverse collapse using this mixin. Solution:
+    - If true, add padding: 0;
+    - If false, add padding: 1rem;
+    - If null, add nothing, to cut down on CSS output
+    - Make null the default value
+*/
+.grid-collapse(@collapse: true) when (@collapse = true) {
+  padding: 0;
+}
+
+/*
+  Constrain the size of a block to the size of the average grid row, and center-align it. This imitates the behavior of ordinary Foundation rows.
+
+  @group grid
+
+  @param {bool} $container - Adds container styles if true.
+
+  @output A maximum width and the good old margin: 0 auto for center alignment.
+*/
+.grid-container(@width: @container-width, @align: center) when(@align = left) {
+  max-width: @width;
+  margin: 0 auto 0 0;
+}
+
+.grid-container(@width: @container-width, @align: right) when(@align = right) {
+  max-width: @width;
+  margin: 0 0 0 auto;
+}
+
+.grid-container(@width: @container-width, @align: right) when(@align = center) {
+  max-width: @width;
+  margin: 0 auto;
+}
+
+/*
+  Add negative margins to a block, equal to the padding of a content block. This aligns the edges of a block nested inside a content block.
+
+  @group grid
+
+  @param {bool} $nest - Adds negative margins if true.
+
+  @output Negative margin values.
+*/
+.grid-nest(@nest: true) when (@nest = true) {
+  margin-left: -1rem;
+  margin-right: -1rem;
+}
+
+/*
+  Offset a block by adding a left margin.
+
+  @group grid
+
+  @param {number | bool} $offset - If false, nothing is output. If a number, offsets the column by the specified number of columns.
+
+  @output A left margin based on the number of columns specified, and the global number of columns.
+*/
+.grid-offset(@offset: false) when (@offset = true) {
+  margin-left: percentage(@offset / @total-columns);
+}
+
+.grid-overflow(@orientation: vertical) when (@orientation = vertical) {
+  overflow-x: auto;
+}
+.grid-overflow(@orientation: horizontal) when (@orientation = horizontal) {
+  overflow-y: auto;
+}
+
+/*
+  Resets styles set by panels. Use this when a panel transforms into a block on larger screens.
+
+  @group grid
+
+  @output Resets to transform, position, and a few visual styles.
+*/
+.grid-panel-reset() {
+  transform: none;
+  position: relative;
+  width: auto;
+  height: auto;
+  z-index: auto;
+  box-shadow: none;
+  background: transparent;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+}
+
+/*
   Frames are containers that stretch to the full dimmensions of the browser window.
 */
 .grid-frame (@size: expand, @orientation: horizontal, @wrap: false, @align: left, @order: 0, @height: 100vh) {
@@ -117,7 +233,88 @@
 }
 
 
-.grid-frame {
-  .grid-frame();
-  .grid-orient();
+/*
+  Groups are collections of content items. They're the "rows" of Foundation for Apps.
+*/
+.grid-block(@size: expand, @orientation: horizontal, @wrap: false, @align: left, @order: 0) {
+  .grid-frame(@size, @orientation, @wrap, @align, @order, auto);
+  // Blocks will scroll by default if their content overflows
+  .grid-orientation(@orientation);
+  // Add scrolling with inertia
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+
+/*
+  Blocks are containers for actual content. They're the "columns" of Foundation for Apps.
+*/
+.grid-content(@size: expand, @offset: null, @order: null) {
+  // Content blocks are not flex items and have padding
+  display: block;
+  padding: 0 @block-padding;
+
+  // Add scrolling with inertia
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: -ms-autohiding-scrollbar;
+
+  .grid-size(@size);
+  .grid-offset(@offset);
+  .grid-order(@order);
+}
+
+.grid-layout(@up) {
+  flex-flow: row wrap;
+  overflow: visible;
+  list-style-type: none;
+
+  & > li, & > div, & > section {
+    padding: 0 1rem 1rem;
+    flex: 0 0 percentage(1 / @up);
+    max-width: percentage(1 / @up);
+  }
+}
+
+// CSS Output
+// - - - - - - - - - - - - - - - - - - - -
+
+// Shared styles for frames and blocks (parent elements)
+.block-core() {
+  // Change the direction children flow
+  &.vertical {
+    .grid-orient(vertical);
+  }
+
+  @i: length(@breakpoint-classes);
+  .loop(@i) when (@i > 0) {
+    .loop((@i - 1));    // next iteration
+    @size: extract(@breakpoint-classes, @i);
+    &.@{size}-vertical   { .grid-orient(vertical); }
+    &.@{size}-horizontal { .grid-orient(horizontal); }
+  }
+
+  @each $size in $breakpoint-classes {
+    @include breakpoint($size) {
+      &.#{$size}-vertical   { @include grid-orient(vertical); }
+      &.#{$size}-horizontal { @include grid-orient(horizontal); }
+    }
+  }
+
+  // Align the children of a grid block
+  &.align-right   { .grid-align(right); }
+  &.align-center  { .grid-align(center); }
+  &.align-justify { .grid-align(justify); }
+  &.align-spaced  { .grid-align(spaced); }
+
+  // Allow child elements to wrap
+  &.wrap { .grid-wrap(true); }
+}
+
+// Shared styles for blocks and content blocks (child elements)
+.child-core() {
+  // Shrink a flex item so it only takes up the space it needs
+  &.shrink { .grid-size(shrink); }
+
+  // Prevent an element from scrolling
+  &.noscroll { overflow: visible; }
 }
